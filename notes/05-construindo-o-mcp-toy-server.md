@@ -91,4 +91,26 @@ Depois disso, `input_schema` passou a ter `term.description` preenchido de verda
 
 ## Passo 5 — Conectar com um client de verdade
 
-_(ainda não feito)_
+**Feito, com um ajuste de escopo em relação ao roadmap original:** o roadmap previa Claude Desktop ou o MCP Inspector — os dois têm interface gráfica, e este ambiente (shell, sem browser/GUI) não roda nenhum dos dois de ponta a ponta pra eu conseguir validar. Em vez de simular isso, escrevi um client de verdade contra o SDK (`mcp-toy-server/smoke_test.py`), que:
+
+- sobe `main.py` como **subprocesso real** via `StdioServerParameters(command="uv", args=["run", "main.py"])` — o mesmo mecanismo que o `claude_desktop_config.json` usaria;
+- fala o protocolo MCP de verdade (`Client` do SDK, handshake + JSON-RPC sobre stdio) — diferença importante em relação à validação dos passos 2–4, que chamava os métodos internos do `MCPServer` direto em processo, pulando a serialização toda.
+
+Rodei (`uv run python smoke_test.py`) e os quatro tipos de chamada bateram: `list_resources` (7), `list_tools` (1, `search_notes`, com a description certa), `read_resource` numa URI específica, e `call_tool` com um termo real — tudo isso agora passando pelo transporte de verdade, não mais pelo atalho interno.
+
+**O que eu não testei, e digo isso explicitamente em vez de fingir que testei:** conexão real com Claude Desktop (não tenho a GUI neste ambiente) ou o MCP Inspector (`uv run mcp dev main.py` — abre um servidor web local que também precisa de browser). Deixo a configuração pronta pra quem tiver acesso a um desses:
+
+```json
+{
+  "mcpServers": {
+    "agentic-systems-notes": {
+      "command": "uv",
+      "args": ["--directory", "/home/renatocruz/agentic-systems-notes/mcp-toy-server", "run", "main.py"]
+    }
+  }
+}
+```
+
+## Passo 6 — Escrita final
+
+_(ainda não feito — esta própria página, revisada de ponta a ponta, é o passo 6)_
