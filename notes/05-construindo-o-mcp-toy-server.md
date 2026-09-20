@@ -98,19 +98,31 @@ Depois disso, `input_schema` passou a ter `term.description` preenchido de verda
 
 Rodei (`uv run python smoke_test.py`) e os quatro tipos de chamada bateram: `list_resources` (7), `list_tools` (1, `search_notes`, com a description certa), `read_resource` numa URI específica, e `call_tool` com um termo real — tudo isso agora passando pelo transporte de verdade, não mais pelo atalho interno.
 
-**O que eu não testei, e digo isso explicitamente em vez de fingir que testei:** conexão real com Claude Desktop (não tenho a GUI neste ambiente) ou o MCP Inspector (`uv run mcp dev main.py` — abre um servidor web local que também precisa de browser). Deixo a configuração pronta pra quem tiver acesso a um desses:
+**O que eu não testei, e digo isso explicitamente em vez de fingir que testei:** conexão real com Claude Desktop (não tenho a GUI neste ambiente) ou o MCP Inspector (`uv run mcp dev main.py` — abre um servidor web local que também precisa de browser).
+
+**Correção que só apareceu depois de eu já ter escrito a primeira versão desta seção:** a config abaixo assumia que quem lança o processo já está no Linux. Como o Claude Desktop aqui roda no Windows (o ambiente é WSL), `command: "uv"` com um path `/home/...` não funciona — o Windows não sabe o que fazer com esse binário nem com esse caminho. A versão certa atravessa pro WSL explicitamente via `wsl.exe`, com o caminho completo do `uv` (pra não depender do `PATH` carregado por `bash -lc`):
 
 ```json
 {
   "mcpServers": {
     "agentic-systems-notes": {
-      "command": "uv",
-      "args": ["--directory", "/home/renatocruz/agentic-systems-notes/mcp-toy-server", "run", "main.py"]
+      "command": "wsl.exe",
+      "args": [
+        "-d", "Ubuntu",
+        "--", "bash", "-lc",
+        "cd /home/renatocruz/agentic-systems-notes/mcp-toy-server && /home/renatocruz/.local/bin/uv run main.py"
+      ]
     }
   }
 }
 ```
 
+Vai em `%APPDATA%\Claude\claude_desktop_config.json` no Windows; reiniciar o Claude Desktop pela bandeja (não só fechar a janela) pra ele reler a config. Se não conectar, `%APPDATA%\Claude\logs\` tem o stderr do processo — nosso servidor só usa stdout pro protocolo, então qualquer erro real aparece lá, nunca misturado com a mensagem JSON-RPC.
+
 ## Passo 6 — Escrita final
 
-_(ainda não feito — esta própria página, revisada de ponta a ponta, é o passo 6)_
+**Feito:** esta página, revisada de ponta a ponta, mais o `README.md` da raiz do repo — que estava desatualizado desde antes de qualquer fichamento ou código existir, ainda descrevendo a pasta `notes/` de forma genérica. Agora ele lista os seis fichamentos por nome e explica o que o `mcp-toy-server/` faz de verdade, não só que "vai seguir o quickstart".
+
+**Olhando pra trás, o padrão que se repete em quase todo passo:** a documentação oficial (quickstart) ensinou o vocabulário e a primeira metade do protocolo — mas quase toda decisão de implementação real (API de resource, `FileResource` em vez de `FunctionResource`, `Annotated`/`Field` em vez de docstring pra description de parâmetro, `wsl.exe` pra conectar Windows↔WSL) só apareceu lendo código-fonte, testando o schema gerado, ou errando e corrigindo. Isso não é uma falha do guia — é o motivo pelo qual documentar o processo, não só o resultado, valia mais que copiar o exemplo de clima com nome trocado.
+
+**Conexão final com [01](01-building-effective-agents.md):** o próprio roadmap deste projeto (setup → resource → resources dinâmicos → tool → cliente real → escrita) foi, sem planejar assim de propósito, um *prompt chaining* aplicado a um humano — etapas fixas, cada uma processando o resultado da anterior, documentada antes de avançar. O texto que abriu esse ciclo de leitura também descreveu, sem querer, como esse mesmo ciclo ia ser conduzido.
