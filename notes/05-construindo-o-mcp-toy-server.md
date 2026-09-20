@@ -46,4 +46,31 @@ Duas regras da assinatura que valem registrar, porque não são óbvias de fora:
 
 ## Passo 3 — Resources dinâmicos
 
+**Feito:** `main.py` agora varre `notes/*.md` e registra um resource por arquivo — nenhum nome de arquivo hardcoded.
+
+**Correção da minha própria hipótese do passo 2:** eu tinha registrado ali que isso "provavelmente vira um resource *template*, com `{arquivo}` na URI". Ao ler a base de resources (`mcp/server/mcpserver/resources/types.py`), isso se mostrou a escolha errada: template resource serve pra quando o servidor **não sabe** o conjunto de URIs válidas de antemão (o client é quem monta a URI). Aqui o servidor sabe exatamente quais fichamentos existem no boot — então o certo é registrar um resource concreto por arquivo, pra cada um aparecer nomeado em `list_resources()`. Com template, o client não veria a lista de fichamentos disponíveis, só o padrão de URI.
+
+**Segunda descoberta, que simplificou o código:** existe uma classe `FileResource` pronta (mesmo módulo), que já sabe ler de um `Path` com a codificação certa — não precisei envelopar `read_text()` numa função e registrar via `FunctionResource` como cheguei a cogitar. Isso também deixou o resource do Passo 2 redundante como estava: refatorei pra ele nascer do mesmo loop, em vez de manter dois jeitos diferentes de expor a mesma coisa (arquivo → resource).
+
+```python
+for note_path in sorted(NOTES_DIR.glob("*.md")):
+    slug = note_path.stem
+    mcp.add_resource(
+        FileResource(
+            uri=f"notes://{slug}",
+            name=slug,
+            title=note_path.name,
+            description=f"Fichamento: {note_path.name}",
+            mime_type="text/markdown",
+            path=note_path,
+        )
+    )
+```
+
+**Detalhe não planejado:** o glob `notes/*.md` também pega o `README.md` da pasta (não é fichamento, é o índice). Decidi manter — vira `notes://README`, e um client de fora se beneficia de ter o índice como mais um resource disponível, não só os fichamentos individuais.
+
+**Validação:** `list_resources()` retornou os 7 arquivos (`00` a `05` + `README`), cada um com URI, título e mime type corretos; leitura de `notes://02-agent-skills` bateu com o conteúdo real do arquivo.
+
+## Passo 4 — Tool de busca
+
 _(ainda não feito)_
