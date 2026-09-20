@@ -73,4 +73,22 @@ for note_path in sorted(NOTES_DIR.glob("*.md")):
 
 ## Passo 4 — Tool de busca
 
+**Feito:** `search_notes(term)`, uma tool que varre `notes/*.md` (mesma fonte dos resources do passo 3) e devolve linhas que batem com o termo, no formato `arquivo:linha: texto` — como um `grep` simples.
+
+**A descoberta de ACI do passo, batendo direto com [01](01-building-effective-agents.md)/[04](04-build-mcp-server.md):** minha primeira versão documentava o parâmetro `term` só na seção "Args:" da docstring, do jeito Google-style que o guia oficial usa no exemplo de clima. Testei o schema gerado (`mcp.list_tools()`) e o texto do "Args:" **não vira `description` do parâmetro** — só fica dentro do texto bruto da tool inteira. O client vê `term` sem explicação nenhuma, exceto se parsear a docstring inteira sozinho. Troquei pra `Annotated[str, Field(description=...)]`:
+
+```python
+@mcp.tool()
+def search_notes(
+    term: Annotated[str, Field(description="Word or phrase to search for (case-insensitive).")],
+) -> str:
+    """Search this repo's reading notes for a term and return matching lines."""
+```
+
+Depois disso, `input_schema` passou a ter `term.description` preenchido de verdade. Ou seja: nesta versão do SDK, "Args:" na docstring é só texto pra humano/modelo ler junto da descrição geral — quem vira *schema* estruturado (o que a ACI realmente usa pra não errar o tipo/uso do parâmetro) é a anotação via `Field`. Isso é uma nuance que só apareceu testando o schema gerado, não lendo a doc.
+
+**Validação:** schema confirmado com `description` por parâmetro; busca por "progressive disclosure" retornou as duas linhas certas de `02-agent-skills.md`; busca por um termo inexistente devolveu a mensagem de "sem match" em vez de lista vazia silenciosa.
+
+## Passo 5 — Conectar com um client de verdade
+
 _(ainda não feito)_
