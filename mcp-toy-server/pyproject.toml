@@ -4,5 +4,6 @@ version = "0.1.0"
 description = "Toy MCP server exposing this repo's own reading notes as Resources and a search Tool"
 requires-python = ">=3.11"
 dependencies = [
+    "litellm>=1.104.2",
     "mcp[cli]>=2.2.0",
 ]
