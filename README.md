@@ -12,6 +12,7 @@ Fichamentos, written in Portuguese (processing the material well matters more he
 - [03 · Introducing the Model Context Protocol](notes/03-model-context-protocol.md) — the M×N problem, client-server architecture
 - [04 · Build an MCP Server](notes/04-build-mcp-server.md) — resources/tools/prompts, the official quickstart
 - [05 · Construindo o MCP toy server](notes/05-construindo-o-mcp-toy-server.md) — meta-fichamento: the build log for the project below, step by step, including what went differently from the quickstart
+- [06 · LiteLLM e portabilidade](notes/06-litellm-e-portabilidade.md) — meta-fichamento: proving the server's model-calling layer isn't locked to one provider, with a simulated (no API key needed) end-to-end test
 
 ## `mcp-toy-server/`
 
@@ -21,6 +22,7 @@ A local MCP server that exposes this repo's own fichamentos (`notes/*.md`) as MC
 cd mcp-toy-server
 uv run main.py                 # runs the server over stdio
 uv run python smoke_test.py    # end-to-end check via a real MCP client (spawns main.py as a subprocess)
+uv run python litellm_bridge.py  # same server, called through a provider-agnostic (LiteLLM-shaped) layer instead — see 06
 ```
 
 To use it from Claude Desktop or another MCP host, see the `claude_desktop_config.json` snippet in the build log (step 5).

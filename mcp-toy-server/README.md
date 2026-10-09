@@ -20,4 +20,9 @@ All six steps done — see the build log for what each one actually involved, in
 ```bash
 uv run main.py                 # runs the server over stdio
 uv run python smoke_test.py    # end-to-end check via a real MCP client
+uv run python litellm_bridge.py  # same server, driven through a LiteLLM-shaped call instead of a raw MCP client
 ```
+
+## `litellm_bridge.py`
+
+A follow-up experiment: converts this server's tools into the format `litellm.completion()` expects, and proves — with a simulated model decision, no API key required — that swapping the `model=` string is the only code that changes to point at a different provider. The providers it runs against (OpenAI, Anthropic, Vertex AI, Azure OpenAI, Bedrock, Ollama, DeepSeek) live in [`providers.yaml`](providers.yaml), not in the code — adding one is a YAML edit. Full write-up: [`../notes/06-litellm-e-portabilidade.md`](../notes/06-litellm-e-portabilidade.md).
